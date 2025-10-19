@@ -1,18 +1,38 @@
 # mentor_engine.py
 
+import os
+
+def get_available_domains():
+    """Returns a list of available domain prompt files in the 'prompts' folder."""
+    if not os.path.exists("prompts"):
+        return []
+    return [
+        filename.replace(".txt", "").replace("_", " ").title()
+        for filename in os.listdir("prompts")
+        if filename.endswith(".txt")
+    ]
+
 def get_career_advice(domain, query):
     """
     Generate career advice for the given domain and user's question.
-    Currently simulates a response. You can later integrate with AI/Gemini API.
+    Loads a domain-specific prompt if available, otherwise suggests alternatives.
     """
 
-    # Load prompt template
+    # Normalize domain name to match file naming convention
+    prompt_file = f"prompts/{domain.lower().replace(' ', '_')}.txt"
+
+    # Try loading the domain-specific prompt
     try:
-        # Expect prompts/Data_Science.txt, prompts/Cloud_Engineering.txt, etc.
-        prompt_file = f"prompts/{domain.lower().replace(' ', '_')}.txt"
         with open(prompt_file, "r") as f:
             base_prompt = f.read()
     except FileNotFoundError:
+        available = get_available_domains()
+        suggestion = (
+            f"⚠️ Domain '{domain}' not found.\n"
+            f"Available domains: {', '.join(available) if available else 'None'}\n"
+            f"Using default mentor prompt instead.\n"
+        )
+        print(suggestion)
         base_prompt = "You are a helpful career mentor."
 
     # Combine the base prompt with user query
