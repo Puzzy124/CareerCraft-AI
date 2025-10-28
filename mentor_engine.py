@@ -1,9 +1,10 @@
-# mentor_engine.py
-
 import os
 
 def get_available_domains():
-    """Returns a list of available domain prompt files in the 'prompts' folder."""
+    """
+    Returns a list of available domain prompt files in the 'prompts' folder.
+    Each filename is converted to a readable domain name.
+    """
     if not os.path.exists("prompts"):
         return []
     return [
@@ -12,37 +13,35 @@ def get_available_domains():
         if filename.endswith(".txt")
     ]
 
-def get_career_advice(domain, query):
+def load_prompt(domain):
     """
-    Generate career advice for the given domain and user's question.
-    Loads a domain-specific prompt if available, otherwise suggests alternatives.
+    Loads the domain-specific prompt file.
+    If not found, returns a default prompt and a suggestion message.
     """
-
-    # Normalize domain name to match file naming convention
     prompt_file = f"prompts/{domain.lower().replace(' ', '_')}.txt"
-
-    # Try loading the domain-specific prompt
-    try:
+    if os.path.exists(prompt_file):
         with open(prompt_file, "r") as f:
-            base_prompt = f.read()
-    except FileNotFoundError:
+            return f.read(), None
+    else:
         available = get_available_domains()
         suggestion = (
             f"⚠️ Domain '{domain}' not found.\n"
             f"Available domains: {', '.join(available) if available else 'None'}\n"
             f"Using default mentor prompt instead.\n"
         )
-        print(suggestion)
-        base_prompt = "You are a helpful career mentor."
+        return "You are a helpful career mentor.", suggestion
 
-    # Combine the base prompt with user query
-    full_prompt = f"""{base_prompt}
+def build_full_prompt(base_prompt, query):
+    """
+    Combines the base prompt with the user's question.
+    """
+    return f"{base_prompt}\n\nUser Question: {query}"
 
-User Question: {query}
-"""
-
-    # Simulate Gemini response (replace with actual API call later)
-    response = (
+def simulate_gemini_response(domain):
+    """
+    Simulates a Gemini response based on the domain.
+    """
+    return (
         f"[Simulated Gemini Response]\n"
         f"Based on your interest in {domain}, here's some advice:\n"
         f"- Focus on relevant skills for {domain}.\n"
@@ -50,4 +49,18 @@ User Question: {query}
         f"- Network with professionals in this field."
     )
 
+def get_career_advice(domain, query):
+    """
+    Main function to generate career advice.
+    Loads the appropriate prompt and returns a simulated response.
+    """
+    base_prompt, suggestion = load_prompt(domain)
+    if suggestion:
+        print(suggestion)
+    full_prompt = build_full_prompt(base_prompt, query)
+    response = simulate_gemini_response(domain)
     return response
+
+# Example usage
+print(get_career_advice("data science", "How do I get started in this field?"))
+``
